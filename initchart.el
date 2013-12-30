@@ -1,4 +1,4 @@
-;;; initchart.el --- Init process performance visualization
+;;; initchart.el --- Emacs' init process performance visualization
 
 ;; Copyright (C) 2013  Yuta Taniguchi
 
