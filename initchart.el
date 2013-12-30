@@ -24,30 +24,30 @@
 ;; process of Emacs.
 ;; 
 ;; First, one need to record the execution time of some primary functions such
-;; as 'load' and 'require'.  Use the macro 'record-execution-time-of' at the
-;; beginning of your init.el to register functions of concern, and then launch
-;; an Emacs process as usual.  Execution time of the registered functions will
-;; be logged in the '*Messages*' buffer.
+;; as 'load' and 'require'.  Use the macro 'initchart-record-execution-time-of'
+;; at the beginning of your init.el to register functions of concern, and then
+;; launch an Emacs process as usual.  Execution time of the registered functions
+;; will be logged in the '*Messages*' buffer.
 ;; 
 ;; Then, you can visualize these logs by invoking the command
-;; 'visualize-init-sequence', which will ask you the filepath to save an output
-;; SVG image.
+;; 'initchart-visualize-init-sequence', which will ask you the filepath to save
+;; an output SVG image.
 ;; 
 ;; Example:
 ;;   (require 'initchart)
-;;   (record-execution-time-of load file)
-;;   (record-execution-time-of require feature)
+;;   (initchart-record-execution-time-of load file)
+;;   (initchart-record-execution-time-of require feature)
 
 ;;; Code:
 
-(defmacro record-execution-time-of (fn arg)
-  `(defadvice ,fn (around ,(intern (concat "record-execution-time-of-" (symbol-name fn))) activate compile)
+(defmacro initchart-record-execution-time-of (fn arg)
+  `(defadvice ,fn (around ,(intern (concat "initchart-record-execution-time-of-" (symbol-name fn))) activate compile)
      (let ((start-time (current-time)))
        ad-do-it
        (let ((end-time (current-time)))
          (message "exec-time: %s(%s) %f %f" (symbol-name ',fn) ,arg (float-time start-time) (float-time end-time))))))
 
-(defun visualize-init-sequence ()
+(defun initchart-visualize-init-sequence ()
   ""
   (interactive)
   (flet ((parse (line)
