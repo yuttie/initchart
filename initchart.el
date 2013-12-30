@@ -37,11 +37,6 @@
 ;;   (require 'initchart)
 ;;   (record-execution-time-of load file)
 ;;   (record-execution-time-of require feature)
-;;   (add-hook 'after-init-hook
-;;             (lambda ()
-;;               (message "exec-time: init %f %f"
-;;                        (float-time before-init-time)
-;;                        (float-time after-init-time))))
 
 ;;; Code:
 
@@ -98,6 +93,12 @@
         (insert (render sorted-logs))
         (when (file-writable-p fp)
           (write-region (point-min) (point-max) fp))))))
+
+(add-hook 'after-init-hook
+          (lambda ()
+            (message "exec-time: init %f %f"
+                     (float-time before-init-time)
+                     (float-time after-init-time))))
 
 (provide 'initchart)
 
