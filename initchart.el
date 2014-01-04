@@ -101,7 +101,7 @@
                                                 ))))
                      (mapconcat #'identity
                                 `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%fem\">"
-                                           2000
+                                           (* scale (- time-max time-min))
                                            (* 1.1 level-max))
                                   ,@(let ((stack    (mapcar (lambda (node) (cons node 0)) (cdr log-tree)))
                                           (rendered '()))
