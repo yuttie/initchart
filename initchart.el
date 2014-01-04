@@ -87,7 +87,7 @@
                         (time-max        (nth 2 (car (car (last top-level-nodes)))))
                         (level-max       (depth log-tree))
                         (offset          time-min)
-                        (scale           (/ 2000 (- time-max time-min))))
+                        (scale           1000))  ; 1 millisecond == 1 px
                    (flet ((render-log (log level)
                                       (let* ((name       (nth 0 log))
                                              (start-time (nth 1 log))
