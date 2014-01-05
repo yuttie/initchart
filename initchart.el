@@ -104,11 +104,31 @@
                                            (* scale (- time-max time-min))
                                            (* 1.1 level-max))
                                   "<style>"
-                                  "  rect { fill: silver; }"
+                                  "  line.major { stroke: black; stroke-width: 2; }"
+                                  "  line.minor { stroke: gray;  stroke-width: 1; stroke-dasharray: 5, 5; }"
+                                  "  text.major,"
+                                  "  text.minor { visibility: visible; }"
+                                  "  rect { fill: silver; opacity: 0.5; }"
                                   "  text { visibility: hidden; }"
                                   "  rect:hover { fill: orange; stroke: black; stroke-width: 2px; }"
                                   "  rect:hover + text { visibility: visible; }"
                                   "</style>"
+                                  ,@(mapcar (lambda (i)
+                                              (let ((x (/ (* 1000 i) 10)))
+                                                (concat
+                                                 (format "<line class=\"minor\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
+                                                         x 0
+                                                         x (* 1.1 level-max))
+                                                 (format "<text class=\"minor\" x=\"%dpx\" y=\"%.1fem\">%dms</text>"
+                                                         x (* 1.1 level-max)
+                                                         x))))
+                                            (number-sequence 0 (ceiling (* 10 (- time-max offset)))))
+                                  ,@(mapcar (lambda (i)
+                                              (let ((x (* 1000 i)))
+                                                (format "<line class=\"major\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
+                                                        x 0
+                                                        x (* 1.1 level-max))))
+                                            (number-sequence 0 (ceiling (- time-max offset))))
                                   ,@(let ((stack    (mapcar (lambda (node) (cons node 0)) (cdr log-tree)))
                                           (rendered '()))
                                       (while (not (null stack))
