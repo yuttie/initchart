@@ -27,7 +27,7 @@
 ;; as 'load' and 'require'.  Use the macro 'initchart-record-execution-time-of'
 ;; at the beginning of your init.el to register functions of concern, and then
 ;; launch an Emacs process as usual.  Execution time of the registered functions
-;; will be logged in the '*Messages*' buffer.
+;; will be logged in the '*initchart*' buffer.
 ;; 
 ;; Then, you can visualize these logs by invoking the command
 ;; 'initchart-visualize-init-sequence', which will ask you the filepath to save
@@ -40,12 +40,22 @@
 
 ;;; Code:
 
+(defun initchart-log (name start-time end-time &optional sub-name)
+  (with-current-buffer "*initchart*"
+    (insert (format "exec-time: %s %f %f\n"
+                    (if sub-name (format "%s(%s)" name sub-name) name)
+                    (float-time start-time)
+                    (float-time end-time)))))
+
 (defmacro initchart-record-execution-time-of (fn arg)
   `(defadvice ,fn (around ,(intern (concat "initchart-record-execution-time-of-" (symbol-name fn))) activate compile)
      (let ((start-time (current-time)))
        ad-do-it
        (let ((end-time (current-time)))
-         (message "exec-time: %s(%s) %f %f" (symbol-name ',fn) ,arg (float-time start-time) (float-time end-time))))))
+         (initchart-log (symbol-name ',fn)
+                        start-time
+                        end-time
+                        ,arg)))))
 
 (defun initchart-visualize-init-sequence (&optional fp)
   ""
@@ -164,8 +174,10 @@
                                   "]]></script>"
                                   "</svg>")
                                 "\n")))))
-    (set-buffer "*Messages*")
-    (let* ((lines (split-string (buffer-substring-no-properties (point-min) (point-max)) "\n" t))
+    (let* ((lines (split-string (with-current-buffer "*initchart*"
+                                  (buffer-substring-no-properties (point-min) (point-max)))
+                                "\n"
+                                t))
            (logs (delq nil (mapcar #'parse lines)))
            (log-tree (mktree logs))
            (fp (or fp (read-file-name "SVG filename:"))))
@@ -178,9 +190,9 @@
 
 (add-hook 'after-init-hook
           (lambda ()
-            (message "exec-time: init %f %f"
-                     (float-time before-init-time)
-                     (float-time after-init-time))))
+            (initchart-log "init" before-init-time after-init-time)))
+
+(get-buffer-create "*initchart*")
 
 (provide 'initchart)
 
