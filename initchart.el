@@ -95,7 +95,7 @@
                                              (x          (* scale (- start-time offset)))
                                              (y          (* 1.1 level))
                                              (width      (* scale (- end-time start-time))))
-                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\" fill=\"silver\"></rect><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
+                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\"></rect><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
                                                 x y width        ; rect
                                                 x (+ y 1.0) name ; text
                                                 ))))
@@ -103,6 +103,12 @@
                                 `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%fem\">"
                                            (* scale (- time-max time-min))
                                            (* 1.1 level-max))
+                                  "<style>"
+                                  "  rect { fill: silver; }"
+                                  "  text { visibility: hidden; }"
+                                  "  rect:hover { fill: orange; stroke: black; stroke-width: 2px; }"
+                                  "  rect:hover + text { visibility: visible; }"
+                                  "</style>"
                                   ,@(let ((stack    (mapcar (lambda (node) (cons node 0)) (cdr log-tree)))
                                           (rendered '()))
                                       (while (not (null stack))
