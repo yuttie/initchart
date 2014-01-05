@@ -120,6 +120,16 @@
                                           (push (render-log log level) rendered)
                                           (setq stack (append subtrees stack))))
                                       rendered)
+                                  "<script><![CDATA["
+                                  "    var rects = document.querySelectorAll('rect');"
+                                  "    for (var i = 0; i < rects.length; ++i) {"
+                                  "        rects[i].addEventListener('mousemove', function(e) {"
+                                  "            var t = e.target.parentNode.querySelector('text');"
+                                  "            t.setAttribute('x', e.pageX + 16);"
+                                  "            t.setAttribute('y', e.pageY + 16);"
+                                  "        });"
+                                  "    }"
+                                  "]]></script>"
                                   "</svg>")
                                 "\n")))))
     (set-buffer "*Messages*")
