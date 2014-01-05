@@ -47,7 +47,7 @@
        (let ((end-time (current-time)))
          (message "exec-time: %s(%s) %f %f" (symbol-name ',fn) ,arg (float-time start-time) (float-time end-time))))))
 
-(defun initchart-visualize-init-sequence ()
+(defun initchart-visualize-init-sequence (&optional fp)
   ""
   (interactive)
   (flet ((parse (line)
@@ -126,7 +126,7 @@
     (let* ((lines (split-string (buffer-substring-no-properties (point-min) (point-max)) "\n" t))
            (logs (delq nil (mapcar #'parse lines)))
            (log-tree (mktree logs))
-           (fp (read-file-name "SVG filename:")))
+           (fp (or fp (read-file-name "SVG filename:"))))
       (with-temp-buffer
         (insert (render log-tree))
         (when (file-writable-p fp)
