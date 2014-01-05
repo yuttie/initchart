@@ -81,6 +81,18 @@
                 (let ((subtrees (cdr tree)))
                   (1+ (apply #'max
                              (cons 0 (mapcar #'depth subtrees))))))
+         (find-node (name tree)
+                    (if (and (listp (car tree))
+                             (equal (caar tree) name))
+                        tree
+                      (let ((children (cdr tree))
+                            (found nil))
+                        (while (and (not found)
+                                    (not (null children)))
+                          (let* ((subtree (pop children))
+                                 (res (find-node name subtree)))
+                            (when res (setq found res))))
+                        found)))
          (render (log-tree)
                  (let* ((top-level-nodes (cdr log-tree))
                         (time-min        (nth 1 (car (car top-level-nodes))))
@@ -158,7 +170,9 @@
            (log-tree (mktree logs))
            (fp (or fp (read-file-name "SVG filename:"))))
       (with-temp-buffer
-        (insert (render log-tree))
+        (let* ((init-node (find-node "init" log-tree))
+               (init-tree `(root . (,init-node))))
+          (insert (render init-tree)))
         (when (file-writable-p fp)
           (write-region (point-min) (point-max) fp))))))
 
