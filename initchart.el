@@ -117,12 +117,12 @@
                                              (x          (* scale (- start-time offset)))
                                              (y          (* 1.1 level))
                                              (width      (* scale (- end-time start-time))))
-                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"/><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
+                                        (format "<g><rect x=\"%.3fpx\" y=\"%.1fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"/><text x=\"%.3fpx\" y=\"%.1fem\">%s</text></g>"
                                                 x y width (* 240 (exp (* -0.01 width)))  ; rect
                                                 x (+ y 1.0) name  ; text
                                                 ))))
                      (mapconcat #'identity
-                                `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%fem\">"
+                                `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%.1fem\">"
                                            (* scale (- time-max time-min))
                                            (* 1.1 level-max))
                                   "<style>"
