@@ -47,6 +47,11 @@
                     (float-time start-time)
                     (float-time end-time)))))
 
+(defun initchart-log-init ()
+  (when (and before-init-time after-init-time)
+    (initchart-log "init" before-init-time after-init-time)
+    t))
+
 (defmacro initchart-record-execution-time-of (fn arg)
   `(defadvice ,fn (around ,(intern (concat "initchart-record-execution-time-of-" (symbol-name fn))) activate compile)
      (let ((start-time (current-time)))
@@ -188,9 +193,7 @@
         (when (file-writable-p fp)
           (write-region (point-min) (point-max) fp))))))
 
-(add-hook 'after-init-hook
-          (lambda ()
-            (initchart-log "init" before-init-time after-init-time)))
+(add-hook 'after-init-hook #'initchart-log-init)
 
 (get-buffer-create "*initchart*")
 
