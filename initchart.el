@@ -117,9 +117,9 @@
                                              (x          (* scale (- start-time offset)))
                                              (y          (* 1.1 level))
                                              (width      (* scale (- end-time start-time))))
-                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\"></rect><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
-                                                x y width        ; rect
-                                                x (+ y 1.0) name ; text
+                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"></rect><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
+                                                x y width (* 240 (exp (* -0.01 width)))  ; rect
+                                                x (+ y 1.0) name  ; text
                                                 ))))
                      (mapconcat #'identity
                                 `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%fem\">"
@@ -130,9 +130,9 @@
                                   "  line.minor { stroke: gray;  stroke-width: 1; stroke-dasharray: 5, 5; }"
                                   "  text.major,"
                                   "  text.minor { visibility: visible; }"
-                                  "  rect { fill: silver; opacity: 0.5; }"
+                                  "  rect { opacity: 0.5; }"
                                   "  text { visibility: hidden; }"
-                                  "  rect:hover { fill: orange; stroke: black; stroke-width: 2px; }"
+                                  "  rect:hover { opacity: 1; stroke: black; stroke-width: 2px; }"
                                   "  rect:hover + text { visibility: visible; }"
                                   "</style>"
                                   ,@(mapcar (lambda (i)
