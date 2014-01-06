@@ -117,7 +117,7 @@
                                              (x          (* scale (- start-time offset)))
                                              (y          (* 1.1 level))
                                              (width      (* scale (- end-time start-time))))
-                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"></rect><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
+                                        (format "<g><rect x=\"%fpx\" y=\"%fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"/><text x=\"%fpx\" y=\"%fem\">%s</text></g>"
                                                 x y width (* 240 (exp (* -0.01 width)))  ; rect
                                                 x (+ y 1.0) name  ; text
                                                 ))))
