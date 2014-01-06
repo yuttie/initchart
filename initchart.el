@@ -68,120 +68,120 @@
 (defun initchart-visualize-init-sequence (&optional fp)
   ""
   (interactive)
-  (flet ((parse (line)
-                (and (string-match "^exec-time: \\([^ ]+\\) \\([^ ]+\\) \\([^ ]+\\)$" line)
-                     `(,(match-string 1 line)
-                       ,(string-to-number (match-string 2 line))
-                       ,(string-to-number (match-string 3 line)))))
-         (log< (x y) (< (nth 1 x) (nth 1 y)))
-         (inside (x y)
-                 (let ((a (nth 1 x))
-                       (b (nth 2 x))
-                       (c (nth 1 y))
-                       (d (nth 2 y)))
-                   (and (<= c a) (<= b d))))
-         (mktree (logs)
-                 (let ((stack '((root . ()))))
-                   (dolist (log (sort logs #'log<))
-                     ;; find the parent of the current log
-                     (while (not (or (eq (caar stack) 'root)
-                                     (inside log (caar stack))))
-                       (let ((subtree (pop stack))
-                             (parent  (car stack)))
-                         (setcdr parent (append (cdr parent) (list subtree)))))
-                     ;; make a new node for the current log
-                     (let ((new-node `(,log . ())))
-                       (push new-node stack)))
-                   (while (not (eq (caar stack) 'root))
-                     (pop stack))
-                   (car stack)))
-         (depth (tree)
-                (let ((subtrees (cdr tree)))
-                  (1+ (apply #'max
-                             (cons 0 (mapcar #'depth subtrees))))))
-         (find-node (name tree)
-                    (if (and (listp (car tree))
-                             (equal (caar tree) name))
-                        tree
-                      (let ((children (cdr tree))
-                            (found nil))
-                        (while (and (not found)
-                                    (not (null children)))
-                          (let* ((subtree (pop children))
-                                 (res (find-node name subtree)))
-                            (when res (setq found res))))
-                        found)))
-         (render (log-tree)
-                 (let* ((top-level-nodes (cdr log-tree))
-                        (time-min        (nth 1 (car (car top-level-nodes))))
-                        (time-max        (nth 2 (car (car (last top-level-nodes)))))
-                        (level-max       (depth log-tree))
-                        (offset          time-min)
-                        (scale           1000))  ; 1 millisecond == 1 px
-                   (flet ((render-log (log level)
-                                      (let* ((name       (nth 0 log))
-                                             (start-time (nth 1 log))
-                                             (end-time   (nth 2 log))
-                                             (x          (* scale (- start-time offset)))
-                                             (y          (* 1.1 level))
-                                             (width      (* scale (- end-time start-time))))
-                                        (format "<g><rect x=\"%.3fpx\" y=\"%.1fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"/><text x=\"%.3fpx\" y=\"%.1fem\">%s</text></g>"
-                                                x y width (* 240 (exp (* -0.01 width)))  ; rect
-                                                x (+ y 1.0) name  ; text
-                                                ))))
-                     (mapconcat #'identity
-                                `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%.1fem\">"
-                                           (* scale (- time-max time-min))
-                                           (* 1.1 level-max))
-                                  "<style>"
-                                  "  line.major { stroke: black; stroke-width: 2; }"
-                                  "  line.minor { stroke: gray;  stroke-width: 1; stroke-dasharray: 5, 5; }"
-                                  "  text.major,"
-                                  "  text.minor { visibility: visible; }"
-                                  "  rect { opacity: 0.5; }"
-                                  "  text { visibility: hidden; }"
-                                  "  rect:hover { opacity: 1; stroke: black; stroke-width: 2px; }"
-                                  "  rect:hover + text { visibility: visible; }"
-                                  "</style>"
-                                  ,@(mapcar (lambda (i)
-                                              (let ((x (/ (* 1000 i) 10)))
-                                                (concat
-                                                 (format "<line class=\"minor\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
-                                                         x 0
-                                                         x (* 1.1 level-max))
-                                                 (format "<text class=\"minor\" x=\"%dpx\" y=\"%.1fem\">%dms</text>"
-                                                         x (* 1.1 level-max)
-                                                         x))))
-                                            (number-sequence 0 (ceiling (* 10 (- time-max offset)))))
-                                  ,@(mapcar (lambda (i)
-                                              (let ((x (* 1000 i)))
-                                                (format "<line class=\"major\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
-                                                        x 0
-                                                        x (* 1.1 level-max))))
-                                            (number-sequence 0 (ceiling (- time-max offset))))
-                                  ,@(let ((stack    (mapcar (lambda (node) (cons node 0)) (cdr log-tree)))
-                                          (rendered '()))
-                                      (while (not (null stack))
-                                        (let* ((node-and-level (pop stack))
-                                               (node           (car node-and-level))
-                                               (level          (cdr node-and-level))
-                                               (log            (car node))
-                                               (subtrees       (mapcar (lambda (x) (cons x (1+ level))) (cdr node))))
-                                          (push (render-log log level) rendered)
-                                          (setq stack (append subtrees stack))))
-                                      rendered)
-                                  "<script><![CDATA["
-                                  "    var rects = document.querySelectorAll('rect');"
-                                  "    for (var i = 0; i < rects.length; ++i) {"
-                                  "        rects[i].addEventListener('mousemove', function(e) {"
-                                  "            var t = e.target.parentNode.querySelector('text');"
-                                  "            t.setAttribute('x', e.pageX + 16);"
-                                  "            t.setAttribute('y', e.pageY + 16);"
-                                  "        });"
-                                  "    }"
-                                  "]]></script>"
-                                  "</svg>")
-                                "\n")))))
+  (cl-labels ((parse (line)
+                     (and (string-match "^exec-time: \\([^ ]+\\) \\([^ ]+\\) \\([^ ]+\\)$" line)
+                          `(,(match-string 1 line)
+                            ,(string-to-number (match-string 2 line))
+                            ,(string-to-number (match-string 3 line)))))
+              (log< (x y) (< (nth 1 x) (nth 1 y)))
+              (inside (x y)
+                      (let ((a (nth 1 x))
+                            (b (nth 2 x))
+                            (c (nth 1 y))
+                            (d (nth 2 y)))
+                        (and (<= c a) (<= b d))))
+              (mktree (logs)
+                      (let ((stack '((root . ()))))
+                        (dolist (log (sort logs #'log<))
+                          ;; find the parent of the current log
+                          (while (not (or (eq (caar stack) 'root)
+                                          (inside log (caar stack))))
+                            (let ((subtree (pop stack))
+                                  (parent  (car stack)))
+                              (setcdr parent (append (cdr parent) (list subtree)))))
+                          ;; make a new node for the current log
+                          (let ((new-node `(,log . ())))
+                            (push new-node stack)))
+                        (while (not (eq (caar stack) 'root))
+                          (pop stack))
+                        (car stack)))
+              (depth (tree)
+                     (let ((subtrees (cdr tree)))
+                       (1+ (apply #'max
+                                  (cons 0 (mapcar #'depth subtrees))))))
+              (find-node (name tree)
+                         (if (and (listp (car tree))
+                                  (equal (caar tree) name))
+                             tree
+                           (let ((children (cdr tree))
+                                 (found nil))
+                             (while (and (not found)
+                                         (not (null children)))
+                               (let* ((subtree (pop children))
+                                      (res (find-node name subtree)))
+                                 (when res (setq found res))))
+                             found)))
+              (render (log-tree)
+                      (let* ((top-level-nodes (cdr log-tree))
+                             (time-min        (nth 1 (car (car top-level-nodes))))
+                             (time-max        (nth 2 (car (car (last top-level-nodes)))))
+                             (level-max       (depth log-tree))
+                             (offset          time-min)
+                             (scale           1000))  ; 1 millisecond == 1 px
+                        (cl-flet ((render-log (log level)
+                                              (let* ((name       (nth 0 log))
+                                                     (start-time (nth 1 log))
+                                                     (end-time   (nth 2 log))
+                                                     (x          (* scale (- start-time offset)))
+                                                     (y          (* 1.1 level))
+                                                     (width      (* scale (- end-time start-time))))
+                                                (format "<g><rect x=\"%.3fpx\" y=\"%.1fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"/><text x=\"%.3fpx\" y=\"%.1fem\">%s</text></g>"
+                                                        x y width (* 240 (exp (* -0.01 width)))  ; rect
+                                                        x (+ y 1.0) name  ; text
+                                                        ))))
+                          (mapconcat #'identity
+                                     `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%.1fem\">"
+                                                (* scale (- time-max time-min))
+                                                (* 1.1 level-max))
+                                       "<style>"
+                                       "  line.major { stroke: black; stroke-width: 2; }"
+                                       "  line.minor { stroke: gray;  stroke-width: 1; stroke-dasharray: 5, 5; }"
+                                       "  text.major,"
+                                       "  text.minor { visibility: visible; }"
+                                       "  rect { opacity: 0.5; }"
+                                       "  text { visibility: hidden; }"
+                                       "  rect:hover { opacity: 1; stroke: black; stroke-width: 2px; }"
+                                       "  rect:hover + text { visibility: visible; }"
+                                       "</style>"
+                                       ,@(mapcar (lambda (i)
+                                                   (let ((x (/ (* 1000 i) 10)))
+                                                     (concat
+                                                      (format "<line class=\"minor\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
+                                                              x 0
+                                                              x (* 1.1 level-max))
+                                                      (format "<text class=\"minor\" x=\"%dpx\" y=\"%.1fem\">%dms</text>"
+                                                              x (* 1.1 level-max)
+                                                              x))))
+                                                 (number-sequence 0 (ceiling (* 10 (- time-max offset)))))
+                                       ,@(mapcar (lambda (i)
+                                                   (let ((x (* 1000 i)))
+                                                     (format "<line class=\"major\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
+                                                             x 0
+                                                             x (* 1.1 level-max))))
+                                                 (number-sequence 0 (ceiling (- time-max offset))))
+                                       ,@(let ((stack    (mapcar (lambda (node) (cons node 0)) (cdr log-tree)))
+                                               (rendered '()))
+                                           (while (not (null stack))
+                                             (let* ((node-and-level (pop stack))
+                                                    (node           (car node-and-level))
+                                                    (level          (cdr node-and-level))
+                                                    (log            (car node))
+                                                    (subtrees       (mapcar (lambda (x) (cons x (1+ level))) (cdr node))))
+                                               (push (render-log log level) rendered)
+                                               (setq stack (append subtrees stack))))
+                                           rendered)
+                                       "<script><![CDATA["
+                                       "    var rects = document.querySelectorAll('rect');"
+                                       "    for (var i = 0; i < rects.length; ++i) {"
+                                       "        rects[i].addEventListener('mousemove', function(e) {"
+                                       "            var t = e.target.parentNode.querySelector('text');"
+                                       "            t.setAttribute('x', e.pageX + 16);"
+                                       "            t.setAttribute('y', e.pageY + 16);"
+                                       "        });"
+                                       "    }"
+                                       "]]></script>"
+                                       "</svg>")
+                                     "\n")))))
     (let* ((lines (split-string (with-current-buffer "*initchart*"
                                   (buffer-substring-no-properties (point-min) (point-max)))
                                 "\n"
