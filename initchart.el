@@ -40,6 +40,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defun initchart-log (name start-time end-time &optional sub-name)
   (with-current-buffer "*initchart*"
     (insert (format "exec-time: %s %f %f\n"
