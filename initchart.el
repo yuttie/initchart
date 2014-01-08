@@ -1,4 +1,4 @@
-;;; initchart.el --- Emacs' init process performance visualization  -*- lexical-binding: t; -*-
+;;; initchart.el --- Emacs' init process performance visualization  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2013  Yuta Taniguchi
 
