@@ -117,13 +117,15 @@
                              (time-min        (nth 1 (car (car top-level-nodes))))
                              (time-max        (nth 2 (car (car (last top-level-nodes)))))
                              (level-max       (depth log-tree))
-                             (offset          time-min)
-                             (scale           1000))  ; 1 millisecond == 1 px
+                             (time-offset     time-min)
+                             (scale           1000)  ; 1 millisecond == 1 px
+                             (canvas-width     (* scale (- time-max time-min)))  ;; in px
+                             (canvas-height    (* 1.1 level-max)))  ;; in em
                         (cl-flet ((render-log (log level)
                                               (let* ((name       (nth 0 log))
                                                      (start-time (nth 1 log))
                                                      (end-time   (nth 2 log))
-                                                     (x          (* scale (- start-time offset)))
+                                                     (x          (* scale (- start-time time-offset)))
                                                      (y          (* 1.1 level))
                                                      (width      (* scale (- end-time start-time))))
                                                 (format "<g><rect x=\"%.3fpx\" y=\"%.1fem\" width=\"%f\" height=\"1.1em\" fill=\"hsl(%f, 100%%, 35%%)\"/><text x=\"%.3fpx\" y=\"%.1fem\">%s</text></g>"
@@ -132,8 +134,8 @@
                                                         ))))
                           (mapconcat #'identity
                                      `(,(format "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"%fpx\" height=\"%.1fem\">"
-                                                (* scale (- time-max time-min))
-                                                (* 1.1 level-max))
+                                                canvas-width
+                                                canvas-height)
                                        "<style>"
                                        "  line.major { stroke: black; stroke-width: 2; }"
                                        "  line.minor { stroke: gray;  stroke-width: 1; stroke-dasharray: 5, 5; }"
@@ -149,17 +151,17 @@
                                                      (concat
                                                       (format "<line class=\"minor\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
                                                               x 0
-                                                              x (* 1.1 level-max))
+                                                              x canvas-height)
                                                       (format "<text class=\"minor\" x=\"%dpx\" y=\"%.1fem\">%dms</text>"
-                                                              x (* 1.1 level-max)
+                                                              x canvas-height
                                                               x))))
-                                                 (number-sequence 0 (ceiling (* 10 (- time-max offset)))))
+                                                 (number-sequence 0 (ceiling (* 10 (- time-max time-offset)))))
                                        ,@(mapcar (lambda (i)
                                                    (let ((x (* 1000 i)))
                                                      (format "<line class=\"major\" x1=\"%dpx\" y1=\"%.1fem\" x2=\"%dpx\" y2=\"%.1fem\"/>"
                                                              x 0
-                                                             x (* 1.1 level-max))))
-                                                 (number-sequence 0 (ceiling (- time-max offset))))
+                                                             x canvas-height)))
+                                                 (number-sequence 0 (ceiling (- time-max time-offset))))
                                        ,@(let ((stack    (mapcar (lambda (node) (cons node 0)) (cdr log-tree)))
                                                (rendered '()))
                                            (while (not (null stack))
