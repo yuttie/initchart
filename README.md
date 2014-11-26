@@ -1,6 +1,6 @@
 # initchart
 
-Emacs' init process performance visualization.
+Visual profiling of Emacs init process.
 
 See [this page](http://yuttie.github.io/initchart/) for examples.
 
