@@ -1,6 +1,6 @@
 # initchart
 
-Visual profiling of Emacs init process.
+Visual and interactive profiling of Emacs init process.
 
 See [this page](http://yuttie.github.io/initchart/) for examples.
 
